@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BasicWebServer.Server.HTTP
 {
-    public class HeaderCollection
+    public class HeaderCollection : IEnumerable<Header>
     {
         private readonly Dictionary<string, Header> headers;
         public HeaderCollection() =>this.headers = new Dictionary<string, Header>();
@@ -16,5 +16,10 @@ namespace BasicWebServer.Server.HTTP
             var header = new Header(name, value);
             this.headers.Add(name, header);
         }
+        public IEnumerator<Header> GetEnumerator() => this.headers.Values.GetEnumerator();
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return this.GetEnumerator();
+    }
     }
 }
