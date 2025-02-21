@@ -38,12 +38,15 @@ namespace BasicWebServer.Server
                 Console.WriteLine(requestText);
                 var request = Request.Parse(requestText);
                 var response = this.routingTable.MatchRequest(request);
+                if(response.PreRenderAction != null)
+                    response.PreRenderAction(request, response);
+                
                 WriteResponse(networkStream, response);
                 connection.Close();
 
             }
         }
-        public void WriteResponse(NetworkStream networkStream, Response response)
+        private void WriteResponse(NetworkStream networkStream, Response response)
         {
             
             var responseBytes = Encoding.UTF8.GetBytes(response.ToString());
