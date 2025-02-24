@@ -27,32 +27,34 @@ namespace BasicWebServer.Server
         }
         public HttpServer(int port, Action<IRoutingTable> routingTable): this("127.0.0.1", port, routingTable) { }
         public HttpServer(Action<IRoutingTable> routingTable): this(8080, routingTable) { }
-        public void Start()
+        public async Task Start()
         {
             this.serverListener.Start();
             while(true)
             {
-                var connection = serverListener.AcceptTcpClient();
-                var networkStream = connection.GetStream();
-                var requestText = this.ReadRequest(networkStream);
-                Console.WriteLine(requestText);
-                var request = Request.Parse(requestText);
-                var response = this.routingTable.MatchRequest(request);
-                if(response.PreRenderAction != null)
-                    response.PreRenderAction(request, response);
-                
-                WriteResponse(networkStream, response);
-                connection.Close();
+                var connection = await serverListener.AcceptTcpClientAsync();
+                await Task.Run(async () =>
+                {
+                    var networkStream = connection.GetStream();
+                    var requestText = await this.ReadRequest(networkStream);
+                    Console.WriteLine(requestText);
+                    var request = Request.Parse(requestText);
+                    var response = this.routingTable.MatchRequest(request);
+                    if (response.PreRenderAction != null)
+                        response.PreRenderAction(request, response);
 
+                    await WriteResponse(networkStream, response);
+                    connection.Close();
+                });
             }
         }
-        private void WriteResponse(NetworkStream networkStream, Response response)
+        private async Task WriteResponse(NetworkStream networkStream, Response response)
         {
             
             var responseBytes = Encoding.UTF8.GetBytes(response.ToString());
-            networkStream.Write(responseBytes);
+            await networkStream.WriteAsync(responseBytes);
         }
-        private string ReadRequest(NetworkStream  networkStream)
+        private async Task<string> ReadRequest(NetworkStream  networkStream)
         {
             var bufferLenght = 1024;
             var buffer = new byte[bufferLenght];
@@ -61,7 +63,7 @@ namespace BasicWebServer.Server
 
             do
             {
-                var bytesRead = networkStream.Read(buffer, 0, bufferLenght);
+                var bytesRead = await networkStream.ReadAsync(buffer, 0, bufferLenght);
                 totalBytes += bytesRead;
                 if(totalBytes > 10 * 1024)
                 {
