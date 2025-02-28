@@ -13,9 +13,11 @@ namespace BasicWebServer.Server.HTTP
         public const string ContentType = "Content-Type";
         public const string ContentLength = "ContentLength";
         public const string ContentDisposition = "Content-Disposition";
+        public const string Cookie = "Cookie";
         public const string Date = "Date";
         public const string Location  = "Location";
         public const string Server = "Server";
+        public const string SetCookie = "Set-Cookie";
         public Header(string name, string value) {
             Guard.AgainstNull(name,nameof (name));  
             Guard.AgainstNull(value,nameof (value));

@@ -27,6 +27,15 @@ namespace BasicWebServer.Server
         }
         public HttpServer(int port, Action<IRoutingTable> routingTable): this("127.0.0.1", port, routingTable) { }
         public HttpServer(Action<IRoutingTable> routingTable): this(8080, routingTable) { }
+        private static void  AddSession(Request request, Response response)
+        {
+            var sessionExists = request.Session.ContainsKey(Session.SessionCurrentDateKey);
+            if (!sessionExists)
+            {
+                request.Session[Session.SessionCurrentDateKey] = DateTime.Now.ToString();
+                response.Cookies.Add(Session.SessionCookieNmae, request.Session.Id);
+            }
+        }
         public async Task Start()
         {
             this.serverListener.Start();
@@ -42,6 +51,7 @@ namespace BasicWebServer.Server
                     var response = this.routingTable.MatchRequest(request);
                     if (response.PreRenderAction != null)
                         response.PreRenderAction(request, response);
+                    AddSession(request, response);
 
                     await WriteResponse(networkStream, response);
                     connection.Close();
